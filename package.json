@@ -1,0 +1,16 @@
+{
+  "name": "hdbongo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "HD Moviez Club — static site plus mobile money payment endpoints",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

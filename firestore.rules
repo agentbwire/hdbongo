@@ -1,0 +1,119 @@
+rules_version = '2';
+
+// hdbongo / HD Moviez Club — Firestore security rules.
+//
+//   users/{uid}      the signed-in user's own account:
+//                    name, email, plan, points, purchases, watch list, bonus downloads
+//   payments/{id}    one receipt per mobile money purchase
+//
+// There is deliberately NO password field anywhere in Firestore.
+// Passwords are held by Firebase Authentication (salted + hashed, never readable,
+// not even by you in the console) and the browser only ever hands a password
+// straight to Firebase Auth. See PUBLISH-TO-VERCEL.md → "About passwords".
+//
+// Everything not listed below stays closed, including the catch-all at the end.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // The email on the account must be the signed-in user's own verified-in-Firebase
+    // address, and can never be swapped for somebody else's.
+    function emailIsOwn() {
+      return request.resource.data.get('email', '') == request.auth.token.email;
+    }
+
+    function emailNotSwapped() {
+      return request.resource.data.get('email', '') == resource.data.get('email', '')
+          || request.resource.data.get('email', '') == request.auth.token.email;
+    }
+
+    function nameIsSane() {
+      return request.resource.data.get('name', '') is string
+          && request.resource.data.get('name', '').size() <= 80;
+    }
+
+    // Points may only go DOWN, with one exception: the welcome credit can take a
+    // brand-new account from 0 to at most 50 (once, and only while it is still 0).
+    function pointsNotIncreased() {
+      return request.resource.data.get('points', 0) <= resource.data.get('points', 0)
+        || (resource.data.get('points', 0) == 0 && request.resource.data.get('points', 0) <= 50);
+    }
+
+    // The package can only stay the same, or be given up by dropping to Bure.
+    function planUnchangedOrDowngraded() {
+      return (
+        request.resource.data.get('plan', 'free') == resource.data.get('plan', 'free')
+        && request.resource.data.get('planExpiresAt', null) == resource.data.get('planExpiresAt', null)
+      ) || (
+        request.resource.data.get('plan', 'free') == 'free'
+        && request.resource.data.get('planExpiresAt', null) == null
+      );
+    }
+
+    function bonusNotIncreased() {
+      return request.resource.data.get('freeDownloadsRemaining', 0) <= resource.data.get('freeDownloadsRemaining', 0);
+    }
+
+    function receiptsUnchanged() {
+      return request.resource.data.get('payments', []) == resource.data.get('payments', []);
+    }
+
+    function listsAreLists() {
+      return request.resource.data.get('cart', []) is list
+        && request.resource.data.get('purchased', []) is list;
+    }
+
+    // ---------- accounts ----------
+    match /users/{uid} {
+      // Only the owner can read their own account. Nobody can read anyone else's.
+      allow read: if isOwner(uid);
+
+      // First sign-up creates the account, with the user's own email and safe defaults.
+      allow create: if isOwner(uid)
+        && emailIsOwn()
+        && nameIsSane()
+        && request.resource.data.get('plan', 'free') == 'free'
+        && request.resource.data.get('points', 0) <= 50
+        && request.resource.data.get('planExpiresAt', null) == null
+        && request.resource.data.get('payments', []) == []
+        && request.resource.data.get('freeDownloadsRemaining', 0) <= 1
+        && request.resource.data.get('cart', []) is list
+        && request.resource.data.get('purchased', []) is list;
+
+      // Everyday use: name, watch list, unlocked titles, spending points, bonus going down.
+      // The email cannot be swapped, and points, the package, expiry and receipts
+      // are otherwise written by the server only.
+      allow update: if isOwner(uid)
+        && emailNotSwapped()
+        && nameIsSane()
+        && pointsNotIncreased()
+        && planUnchangedOrDowngraded()
+        && bonusNotIncreased()
+        && receiptsUnchanged()
+        && listsAreLists();
+
+      allow delete: if false;
+    }
+
+    // ---------- payment receipts ----------
+    match /payments/{paymentId} {
+      // A receipt is readable by its owner, and written only by the server.
+      allow read: if signedIn() && resource.data.user_id == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ---------- everything else ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

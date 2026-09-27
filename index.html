@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#141414">
+    <meta name="description" content="HD BONGO CLUB - Pakua filamu bora za HD na angalia trailers.">
+    <meta name="keywords" content="movies, films, download, HD, trailers, offline">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HD BONGO">
+    <meta name="color-scheme" content="dark">
+    
+    <title>HD BONGO CLUB | Pakua Filamu Bora za HD</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/card-preview.css">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23e50914' width='180' height='180'/><text x='50%' y='50%' font-size='100' font-weight='900' fill='white' text-anchor='middle' dy='.3em'>HD</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23e50914' width='180' height='180'/><text x='50%' y='50%' font-size='100' font-weight='900' fill='white' text-anchor='middle' dy='.3em'>HD</text></svg>">
+    
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('✅ SW registered'))
+                .catch(err => console.log('SW error:', err));
+        }
+
+        // Offline detection
+        window.addEventListener('offline', () => {
+            var _el = document.getElementById('offlineIndicator'); if (_el) _el.style.display = 'flex';
+        });
+        window.addEventListener('online', () => {
+            var _el = document.getElementById('offlineIndicator'); if (_el) _el.style.display = 'none';
+        });
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()" title="Toggle menu" aria-label="Toggle navigation menu" aria-expanded="false">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="4" x2="20" y1="6" y2="6"></line>
+                    <line x1="4" x2="20" y1="12" y2="12"></line>
+                    <line x1="4" x2="20" y1="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Logo -->
+            <a href="#" class="nav-logo" onclick="navigateTo('home'); return false;" aria-label="HDBONGOCLUB Home">
+                <div class="logo-icon movie-logo-icon" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                        <path d="M10.054 3 8.387 8h5.892l1.667-5h-5.892Z" fill="white"/>
+                        <path d="M7.946 3 6.279 8H2v2h20V8h-5.613l1.667-5H20.6A2.4 2.4 0 0 1 23 5.4v13.2a2.4 2.4 0 0 1-2.4 2.4H3.4A2.4 2.4 0 0 1 1 18.6V5.4A2.4 2.4 0 0 1 3.4 3h4.546Z" fill="red"/>
+                    </svg>
+                </div>
+                <div class="logo-text-styled">
+                    <span class="logo-text-moviez">HDBONGOCLUB</span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation Links -->
+            <div class="nav-links" role="menubar">
+                <a href="#" onclick="navigateTo('home'); return false;" role="menuitem">Nyumbani</a>
+                <a href="#" onclick="navigateTo('content'); return false;" role="menuitem">Filamu</a>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="nav-actions" role="toolbar" aria-label="Actions">
+                <!-- Offline Indicator -->
+                <div class="offline-indicator" id="offlineIndicator" style="display: none;" title="Offline Mode" aria-label="You are offline">
+                    <i class="fas fa-wifi-slash" aria-hidden="true"></i>
+                    <span>Offline</span>
+                </div>
+
+                <!-- Vifurushi Display -->
+                <button class="plans-btn" id="pointsDisplay" onclick="openPlansMenu()" title="Chagua mpango" aria-label="Tazama na chagua mpango wa usajili">
+                    <i class="fas fa-box-open plans-btn-icon" aria-hidden="true"></i>
+                    <span class="plans-btn-label">Vifurushi</span>
+                </button>
+
+                <!-- Cart Display -->
+                <button class="cart-display" id="cartDisplay" onclick="openCartModal()" title="Orodha ya Kutazama" aria-label="Fungua Orodha ya Kutazama">
+                    <div class="cart-icon" aria-hidden="true">
+                        <i class="fas fa-bookmark"></i>
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </div>
+                </button>
+
+                <!-- Desktop Auth -->
+                <div id="authButtons" class="auth-buttons">
+                    <button class="btn btn-outline" onclick="openAuthModal('login')">Ingia</button>
+                    <button class="btn btn-primary" onclick="openAuthModal('register')">Jisajili</button>
+                </div>
+
+                <!-- Desktop User Profile -->
+                <div id="userProfileDropdown" class="user-profile-dropdown" style="display: none;">
+                    <button class="user-profile-btn" onclick="toggleProfileMenu()" aria-expanded="false" aria-haspopup="menu">
+                        <div class="user-avatar" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="user-name" id="userName">Mtumiaji</span>
+                    </button>
+                    <div class="profile-menu" id="profileMenu" role="menu">
+                        <a href="#" class="profile-menu-item" onclick="navigateTo('profile'); closeProfileMenu(); return false;" role="menuitem">
+                            <i class="fas fa-user" aria-hidden="true"></i>
+                            Wasifu wangu
+                        </a>
+                        <a href="#" class="profile-menu-item" onclick="openCartModal(); closeProfileMenu(); return false;" role="menuitem">
+                            <i class="fas fa-shopping-basket" aria-hidden="true"></i>
+                            Orodha ya Kutazama
+                        </a>
+                        <a href="#" class="profile-menu-item" onclick="openPlansMenu(); closeProfileMenu(); return false;" role="menuitem">
+                            <i class="fas fa-coins" aria-hidden="true"></i>
+                            Nunua Vifurushi
+                        </a>
+                        <div class="profile-menu-divider" role="separator"></div>
+                        <a href="#" class="profile-menu-item logout" onclick="handleLogout(); return false;" role="menuitem">
+                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                            Ondoka
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Drawer -->
+    <div class="mobile-menu-drawer" id="mobileMenuDrawer" role="navigation" aria-label="Mobile navigation">
+        <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+        <div class="mobile-menu-content">
+            <div class="mobile-menu-header">
+                <h2>Menu</h2>
+                <button class="mobile-menu-close" onclick="toggleMobileMenu()" aria-label="Close menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mobile-menu-links">
+                <a href="#" onclick="navigateTo('home'); toggleMobileMenu(); return false;">
+                    <i class="fas fa-home" aria-hidden="true"></i>
+                    Nyumbani
+                </a>
+                <a href="#" onclick="navigateTo('content'); toggleMobileMenu(); return false;">
+                    <i class="fas fa-film" aria-hidden="true"></i>
+                    Moviez
+                </a>
+                <div class="mobile-menu-divider"></div>
+                <a href="#" onclick="openPlansMenu(); toggleMobileMenu(); return false;">
+                    <i class="fas fa-coins" aria-hidden="true"></i>
+                    Nunua Vifurushi
+                </a>
+            </div>
+
+            <div class="mobile-menu-actions" id="mobileMenuActions">
+                <div class="mobile-auth-actions" id="mobileAuthActions">
+                    <button class="mobile-auth-button mobile-auth-button-secondary" onclick="openAuthModal('login'); toggleMobileMenu();"><i class="fas fa-arrow-right-to-bracket" aria-hidden="true"></i> Ingia</button>
+                    <button class="mobile-auth-button mobile-auth-button-primary" onclick="openAuthModal('register'); toggleMobileMenu();"><i class="fas fa-user-plus" aria-hidden="true"></i> Jisajili</button>
+                </div>
+                <button class="btn btn-primary btn-block" id="mobileMyContentBtn" style="display: none;" onclick="navigateTo('myContent'); toggleMobileMenu();">Filamu Zangu</button>
+                <button class="btn btn-outline btn-block" id="mobileLogoutBtn" style="display: none;" onclick="handleLogout(); toggleMobileMenu();">Ondoka</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="mainContent" role="main">
+        <!-- Home Page -->
+        <div id="homePage" class="page active">
+            <section class="hero-marquee-section" aria-label="Featured Section">
+                <!-- Hero -->
+                <div class="hero">
+                    <img class="hero-bg-image" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1800&auto=format&fit=crop" alt="Cinema background" loading="lazy">
+                    <div class="hero-overlay"></div>
+                    <div class="hero-container">
+                        <div class="hero-content">
+                            <h1>Connection Bongo <span class="text-highlight">Kutombana Tu</span></h1>
+                            <p>Download Videos bora za HD kwa urahisi. Baikoko, warembo, Bila huruma, Tomba kabisa na zaidi.</p>
+                            
+                            <div class="hero-search">
+                                <div class="hero-search-box" role="search">
+                                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <path d="m21 21-4.3-4.3"></path>
+                                    </svg>
+                                    <input type="text" id="heroSearchInput" placeholder="Tafuta video..." onkeyup="handleHeroSearch(event)" aria-label="Search movies">
+                                    <button class="hero-search-btn" onclick="executeHeroSearch()" aria-label="Search">
+                                        Tafuta
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="hero-categories">
+                                <button class="hero-cat-tag" onclick="filterByCategory('Zote'); navigateTo('content');">Zote</button>
+                                <button class="hero-cat-tag" onclick="filterByCategory('Warembo'); navigateTo('content');">Warembo</button>
+                                <button class="hero-cat-tag" onclick="filterByCategory('Baikoko'); navigateTo('content');">Baikoko</button>
+                                <button class="hero-cat-tag" onclick="filterByCategory('Bila huruma'); navigateTo('content');">Bila huruma</button>
+                                <button class="hero-cat-tag" onclick="filterByCategory('Tomba kabisa'); navigateTo('content');">Tomba kabisa</button>
+                                <button class="hero-cat-tag" onclick="filterByCategory('Vivamax'); navigateTo('content');">Vivamax</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logo Marquee -->
+                <div class="logo-marquee" aria-label="Streaming partners">
+                    <div class="logo-track">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ea/Netflix_Logomark.png" alt="Netflix" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg" alt="Marvel" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/HBO_Max_Logo.svg" alt="HBO Max" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Pornhub-logo.svg" alt="Pornhub" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg" alt="SONY" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/Warner_Bros._2023_%28Alt%2C_with_wordmark%29.svg" alt="Warner Bros" loading="lazy">
+                        <!-- Duplicates for seamless scroll -->
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ea/Netflix_Logomark.png" alt="Netflix" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/HBO_Max_Logo.svg" alt="HBO Max" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Pornhub-logo.svg" alt="Pornhub" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg" alt="Marvel" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg" alt="SONY" loading="lazy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/Warner_Bros._2023_%28Alt%2C_with_wordmark%29.svg" alt="Warner Bros" loading="lazy">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Content -->
+            <section class="featured-section" aria-labelledby="featured-heading">
+                <div class="section-container">
+                    <div class="section-header">
+                        <div>
+                            <h2 id="featured-heading">Zinazopendwa Sana</h2>
+                            <p class="section-subtitle">Moviez zinazodanlodiwa sana</p>
+                        </div>
+                        <button class="btn btn-outline-light" onclick="navigateTo('content')">
+                            Ona Zote
+                        </button>
+                    </div>
+                    <div class="content-grid" id="featuredContent"></div>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section class="categories-section" aria-labelledby="categories-heading">
+                <div class="section-container">
+                    <div class="section-header">
+                        <h2 id="categories-heading">Aina za Filamu</h2>
+                        <p class="section-subtitle">Chagua aina unayoipenda</p>
+                    </div>
+                    <div class="category-cards" id="categoryCards"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Content Page -->
+        <div id="contentPage" class="page">
+            <section class="content-section" aria-labelledby="content-heading">
+                <div class="section-container">
+                    <div class="page-header">
+                        <h1 id="content-heading">Filamu Zote</h1>
+                        <p>Pakua filamu za HD kwa urahisi</p>
+                    </div>
+                    
+                    <div class="content-search-wrapper">
+                        <div class="content-search-box" role="search">
+                            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.3-4.3"></path>
+                            </svg>
+                            <input type="text" id="contentSearchInput" placeholder="Tafuta filamu..." onkeyup="handleSearch(this.value)" aria-label="Search movies">
+                        </div>
+                    </div>
+
+                    <div class="categories-filter" id="categoriesFilter"></div>
+                    <div class="content-grid" id="allContent"></div>
+                    <div class="no-results" id="noResults" style="display: none;" role="status">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
+                        <p>Hakuna Moviez zilizopatikana</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Content Detail Page -->
+        <div id="contentDetailPage" class="page">
+            <div id="contentDetailContent"></div>
+        </div>
+
+        <!-- Software Detail Page -->
+        <div id="softwareDetailPage" class="page">
+            <div id="softwareDetailContent"></div>
+        </div>
+
+        <!-- My Content Page -->
+        <div id="myContentPage" class="page">
+            <section class="my-content-section" aria-labelledby="mycontent-heading">
+                <div class="section-container">
+                    <div class="page-header">
+                        <h1 id="mycontent-heading"><i class="fas fa-shopping-basket" aria-hidden="true"></i> Filamu Zangu</h1>
+                        <p>Filamu zilizo kwenye Orodha ya Kutazama</p>
+                    </div>
+                    <div class="content-grid" id="myContentGrid"></div>
+                    <div class="empty-state" id="emptyMyContent" style="display: none;" role="status">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+                            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
+                            <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+                        </svg>
+                        <p>Huna filamu bado</p>
+                        <button class="btn btn-primary" onclick="navigateTo('content')">Tazama Filamu</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo-text-styled">
+                    <span class="logo-text-hd">HD</span>
+                    <span class="logo-text-moviez">MOVIEZ</span>
+                    <span class="logo-text-club">CLUB</span>
+                </div>
+                <p>Pakua filamu bora za HD kwa urahisi.</p>
+            </div>
+            <div class="footer-links" role="navigation" aria-label="Footer navigation">
+                <div class="footer-col">
+                    <h4>Viungo</h4>
+                    <a href="#" onclick="navigateTo('home'); return false;">Nyumbani</a>
+                    <a href="#" onclick="navigateTo('content'); return false;">Filamu</a>
+                            </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 HD BONGO CLUB. Tazama Moviez Mbalimbali. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Profile Page -->
+    <div id="profilePage" class="page">
+        <section class="profile-section" aria-labelledby="profile-heading">
+            <div class="section-container">
+                <div class="profile-card">
+                    <div class="profile-avatar"><i class="fas fa-user" aria-hidden="true"></i></div>
+                    <p class="eyebrow">AKAUNTI YAKO</p>
+                    <h1 id="profile-heading">Karibu, <span id="profileName">Mtumiaji</span></h1>
+                    <p id="profileEmail" class="profile-email">email@example.com</p>
+                    <div class="profile-details">
+                        <div><span>Mpango</span><strong id="profilePlan">Bure</strong></div>
+                        <div><span>Pointi</span><strong id="profilePoints">0</strong></div>
+                    <div class="profile-item">
+                        <span class="profile-label">Muda</span>
+                        <span id="profilePlanExpiry" class="profile-value"></span>
+                    </div>
+                    </div>
+                    <button class="btn btn-outline" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i> Rudi Nyumbani</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal" role="dialog" aria-labelledby="auth-dialog-title" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeAuthModal()"></div>
+        <div class="modal-content auth-modal">
+            <button class="modal-close" onclick="closeAuthModal()" aria-label="Close dialog">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+            </button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')" role="tab" aria-selected="true" aria-controls="login-form">Ingia</button>
+                <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')" role="tab" aria-selected="false" aria-controls="register-form">Jisajili</button>
+            </div>
+            
+            <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)" role="tabpanel" aria-labelledby="login-tab">
+                <h2 id="auth-dialog-title">Karibu Tena!</h2>
+                <p class="auth-subtitle">Ingia kwenye akaunti yako</p>
+                <div class="form-group">
+                    <label for="loginEmail">Barua pepe</label>
+                    <input type="email" id="loginEmail" placeholder="mfano@email.com" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Neno la siri</label>
+                    <input type="password" id="loginPassword" placeholder="Ingiza neno la siri" required aria-required="true">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Ingia</button>
+                <a href="#" id="reset" class="forgot-password" onclick="openResetModal(); return false;">Forgot Password?</a>
+            </form>
+            
+            <form class="auth-form" id="registerForm" style="display: none;" onsubmit="handleRegister(event)" role="tabpanel">
+                <h2>Jisajili Sasa!</h2>
+                <p class="auth-subtitle">Jisajili na uanze kutumia vifurushi</p>
+                <div class="welcome-bonus">
+                    <i class="fas fa-gift" aria-hidden="true"></i>
+                    <span>Jisajili upate Bonus</span>
+                </div>
+                <div class="form-group">
+                    <label for="registerName">Jina kamili</label>
+                    <input type="text" id="registerName" placeholder="Jina lako" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Barua pepe</label>
+                    <input type="email" id="registerEmail" placeholder="mfano@email.com" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Neno la siri</label>
+                    <input type="password" id="registerPassword" placeholder="Weka neno la siri" required minlength="6" aria-required="true">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Jisajili Sasa</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal (Firebase-ready placeholder) -->
+    <div class="modal" id="resetModal" role="dialog" aria-labelledby="reset-title" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeResetModal()"></div>
+        <div class="modal-content auth-modal">
+            <button class="modal-close" onclick="closeResetModal()" aria-label="Close dialog"><i class="fas fa-times"></i></button>
+            <form class="auth-form" onsubmit="requestPasswordReset(event)">
+                <h2 id="reset-title">Reset Password</h2>
+                <p class="auth-subtitle">Tuma link ya uthibitisho kwenye email yako.</p>
+                <div class="form-group"><label for="resetEmail">Barua pepe</label><input type="email" id="resetEmail" placeholder="mfano@email.com" required></div>
+  <p class="reset-note"><b>Link ya kubadilisha neno la siri itatumwa kwenye email yako.</b></p>
+  <button type="submit" class="btn btn-primary btn-block">Tuma Reset Link</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vifurushi Plans Modal -->
+    <div class="modal" id="plansModal" role="dialog" aria-labelledby="plans-modal-title" aria-hidden="true">
+        <div class="modal-overlay" onclick="closePlansModal()"></div>
+        <div class="modal-content plans-modal-content">
+            <button class="modal-close" onclick="closePlansModal()" aria-label="Close dialog">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+            <div class="plans-modal-header">
+                <p class="plans-modal-subtitle">Burudani kwa wote. Hakuna matata jitombe na vifurushi bomba</p>
+                <h2 id="plans-modal-title" class="plans-giant-title">Vifurushi</h2>
+            </div>
+            <div class="plans-grid" id="plansGrid">
+                <div class="plan-card" onclick="selectPlan('free')"><div class="plan-card-inner"><p class="plan-card-type">HD Play</p><div class="plan-card-price"><span class="plan-price-num free">Bure</span></div><p class="plan-card-blurb">Peruzi bure bila kikomo</p><div class="plan-card-divider"></div><ul class="plan-card-features"><li><span class="plan-check">✓</span> Tazama Trailers</li><li><span class="plan-check">✓</span> Ubora wa HD</li><li><span class="plan-check">✓</span> Matangazo (Ads)</li><li><span class="plan-cross">✗</span> <span class="muted">Upakuaji (Download)</span></li><li><span class="plan-cross">✗</span> <span class="muted">Maudhui ya kipekee</span></li><li><span class="plan-check">✓</span> <span class="muted">2 Bonus Bomba</span></li></ul><button class="plan-cta free-cta" onclick="event.stopPropagation(); selectPlan('free')">Anza Bure</button></div></div>
+                <div class="plan-card popular" onclick="selectPlan('weekly')"><span class="plan-popular-badge">Popular</span><div class="plan-card-inner"><p class="plan-card-type">Kifurushi BOMBA</p><div class="plan-card-price"><span class="plan-price-num">Tsh 2,000</span><span class="plan-price-period">/ Wiki</span></div><p class="plan-card-blurb">Burudani bila kikomo</p><div class="plan-card-divider"></div><ul class="plan-card-features"><li><span class="plan-check">✓</span> Filamu Bomba bila kikomo Wiki nzima</li><li><span class="plan-check">✓</span> Ubora wa HD</li><li><span class="plan-check">✓</span> Bila matangazo</li><li><span class="plan-check">✓</span> +18 Only</li><li><span class="plan-cross">✗</span> <span class="muted">+20 Only (Maudhui PREMIUM)</span></li><li><span class="plan-check">✓</span> Upakuaji wa filamu</li></ul><button class="plan-cta" onclick="event.stopPropagation(); selectPlan('weekly')">Chagua Wiki</button></div></div>
+                <div class="plan-card" onclick="selectPlan('monthly')"><div class="plan-card-inner"><p class="plan-card-type">Kifurushi PREMIUM</p><div class="plan-card-price"><span class="plan-price-num">Tsh 5,000</span><span class="plan-price-period">/ Mwezi</span></div><p class="plan-card-blurb">Tomba kabisa mwezi mzima</p><div class="plan-card-divider"></div><ul class="plan-card-features"><li><span class="plan-check">✓</span> Burudani Mwenzi mzima </li><li><span class="plan-check">✓</span> Tobwa kabisa HD🔞!</li><li><span class="plan-check">✓</span> Ubora wa HD</li><li><span class="plan-check">✓</span> PREMIUM +20 Only</li><li><span class="plan-check">✓</span> Ukatili mwanzo mwisho</li></ul><button class="plan-cta" onclick="event.stopPropagation(); selectPlan('monthly')">Chagua Mwezi</button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal" role="dialog" aria-labelledby="payment-modal-title" aria-hidden="true">
+        <div class="modal-overlay" onclick="closePaymentModal()"></div>
+        <div class="modal-content payment-modal-redesign">
+            <button class="modal-close" onclick="closePaymentModal()" aria-label="Close dialog">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+            </button>
+
+            <!-- Header -->
+            <div class="pm-header">
+                <div class="pm-header-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div>
+                    <h2 id="payment-modal-title">Complete Purchase</h2>
+                    <p class="pm-header-sub">Secure payment via mobile money</p>
+                </div>
+            </div>
+
+            <!-- Package Summary -->
+            <div class="pm-summary-card" id="pmSummaryCard">
+                <div class="pm-summary-row">
+                    <span class="pm-summary-label"><i class="fas fa-box-open"></i> KIFURUSHI</span>
+                    <span class="pm-summary-value pts" id="pmSummaryPoints">—</span>
+                </div>
+                <div class="pm-summary-divider"></div>
+                <div class="pm-summary-row">
+                    <span class="pm-summary-label"><i class="fas fa-money-bill-wave"></i> MALIPO</span>
+                    <span class="pm-summary-value amt" id="pmSummaryAmount">—</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Currency & Amount -->
+            <div class="pm-section" id="paymentStep1">
+                <div class="pm-section-title">Amount to Pay</div>
+                <div class="pm-amount-row">
+                    <input type="text" id="paymentAmount" class="pm-amount-input pm-amount-readonly" placeholder="0" readonly aria-label="Amount" aria-readonly="true">
+
+                    <!-- Mobile money is Tanzanian shillings only -->
+                    <div class="pm-currency-static" aria-label="Currency TZS">
+                        <img src="https://flagcdn.com/w40/tz.png" alt="Tanzania flag">
+                        <span>TZS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Payment Method -->
+            <div class="pm-section" id="paymentStep2">
+                <div class="pm-section-title">Select Payment Method</div>
+                <div class="pm-methods" role="radiogroup" aria-label="Payment methods">
+
+                    <!-- Vodacom M-Pesa (Tanzania) -->
+                    <button class="pm-method-card" id="method-vodacom" onclick="selectPaymentMethod('vodacom', event)" role="radio" aria-checked="false">
+                        <div class="pm-method-left">
+                            <div class="pm-method-logo pm-logo-img-wrap">
+                                <img src="assets/payment-logos/m-pesa.png" alt="Vodacom M-Pesa" class="pm-logo-img pm-logo-large" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="pm-logo-fallback vodacom-bg" style="display:none">M</span>
+                            </div>
+                            <div class="pm-method-info">
+                                <h4>Vodacom M-Pesa</h4>
+                                <p>Pay via Vodacom M-Pesa Tanzania</p>
+                            </div>
+                        </div>
+                        <div class="pm-method-right">
+                            <img src="https://flagcdn.com/w40/tz.png" alt="Tanzania" class="pm-method-flag">
+                            <span class="pm-fee-label">TZS</span>
+                        </div>
+                    </button>
+
+                    <!-- Halotel Halopesa (Tanzania) -->
+                    <button class="pm-method-card" id="method-halopesa" onclick="selectPaymentMethod('halopesa', event)" role="radio" aria-checked="false">
+                        <div class="pm-method-left">
+                            <div class="pm-method-logo pm-logo-img-wrap">
+                                <img src="assets/payment-logos/halopesa.png" alt="Halopesa" class="pm-logo-img pm-logo-large" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="pm-logo-fallback halopesa-bg" style="display:none">HALO</span>
+                            </div>
+                            <div class="pm-method-info">
+                                <h4>Halotel Halopesa</h4>
+                                <p>Pay via Halopesa Tanzania</p>
+                            </div>
+                        </div>
+                        <div class="pm-method-right">
+                            <img src="https://flagcdn.com/w40/tz.png" alt="Tanzania" class="pm-method-flag">
+                            <span class="pm-fee-label">TZS</span>
+                        </div>
+                    </button>
+
+                    <!-- Tigo Pesa (Tanzania) -->
+                    <button class="pm-method-card" id="method-tigo" onclick="selectPaymentMethod('tigo', event)" role="radio" aria-checked="false">
+                        <div class="pm-method-left">
+                            <div class="pm-method-logo pm-logo-img-wrap">
+                                <img src="assets/payment-logos/tigo.png" alt="Tigo Pesa" class="pm-logo-img pm-logo-large" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="pm-logo-fallback tigo-bg" style="display:none">TIGO</span>
+                            </div>
+                            <div class="pm-method-info">
+                                <h4>Mixx by Yas</h4>
+                                <p>Pay via Tigo Pesa Tanzania</p>
+                            </div>
+                        </div>
+                        <div class="pm-method-right">
+                            <img src="https://flagcdn.com/w40/tz.png" alt="Tanzania" class="pm-method-flag">
+                            <span class="pm-fee-label">TZS</span>
+                        </div>
+                    </button>
+
+                    <!-- Airtel Money (Tanzania / Kenya / Uganda) -->
+                    <button class="pm-method-card" id="method-airtel" onclick="selectPaymentMethod('airtel', event)" role="radio" aria-checked="false">
+                        <div class="pm-method-left">
+                            <div class="pm-method-logo pm-logo-img-wrap">
+                                <img src="assets/payment-logos/AirtelMoney.png" alt="Airtel Money" class="pm-logo-img pm-logo-large" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="pm-logo-fallback airtel-bg" style="display:none">AIR</span>
+                            </div>
+                            <div class="pm-method-info">
+                                <h4>Airtel Money</h4>
+                                <p>Pay via Airtel Mobile Money</p>
+                            </div>
+                        </div>
+                        <div class="pm-method-right">
+                            <div class="pm-flag-pair">
+                                <img src="https://flagcdn.com/w40/tz.png" alt="Tanzania">
+                                <img src="https://flagcdn.com/w40/ke.png" alt="Kenya">
+                                <img src="https://flagcdn.com/w40/ug.png" alt="Uganda">
+                            </div>
+                            <span class="pm-fee-label">TZS / KES / UGX</span>
+                        </div>
+                    </button>
+
+                    <!-- Step 3a: Phone Number (mobile money) -->
+            <div class="pm-section" id="paymentStep3" style="display: none;">
+                <div class="pm-section-title" id="phoneInputTitle">Enter Phone Number</div>
+                <div class="pm-phone-row">
+                    <span class="pm-phone-prefix" id="phonePrefix">+254</span>
+                    <input type="tel" id="paymentPhone" class="pm-phone-input" placeholder="7XX XXX XXX" maxlength="9" aria-required="true" aria-label="Phone number">
+                </div>
+                <p class="pm-phone-hint" id="pmPhoneHint">Ingiza namba bila (0) </p>
+            </div>
+
+            <!-- Make Payment Button -->
+            <button class="pm-pay-btn" id="makePaymentBtn" onclick="processPayment()">
+                <i class="fas fa-lock"></i>
+                SEND
+            </button>
+
+            <p class="pm-secure-note"><i class="fas fa-shield-alt"></i> Secured &amp; encrypted payment</p>
+        </div>
+    </div>
+
+    <!-- Download Modal - Professional Design -->
+    <div class="modal" id="downloadModal" role="dialog" aria-labelledby="download-title" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeDownloadModal()"></div>
+        <div class="modal-content download-modal" id="downloadContent">
+            <!-- Content injected dynamically -->
+        </div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div class="cart-drawer" id="cartDrawer" role="dialog" aria-labelledby="cart-title" aria-hidden="true">
+        <div class="cart-drawer-overlay" onclick="closeCartModal()"></div>
+        <div class="cart-drawer-content">
+            <div class="cart-drawer-header">
+                <div class="cart-drawer-title">
+                    <i class="fas fa-shopping-basket" aria-hidden="true"></i>
+                    <h2 id="cart-title">Orodha ya Kutazama</h2>
+                </div>
+                <button class="cart-drawer-close" onclick="closeCartModal()" aria-label="Close cart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="cart-drawer-subtitle">Filamu <strong id="cartItemCount">0</strong> kwenye Orodha ya Kutazama</p>
+            
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-empty" id="cartEmpty" role="status">
+                <i class="fas fa-shopping-basket" aria-hidden="true"></i>
+                <p>Orodha ya Kutazama chako ni tupu</p>
+                <button class="btn btn-primary" onclick="closeCartModal(); navigateTo('content');">Tazama Filamu</button>
+            </div>
+            <div class="cart-footer" id="cartFooter" style="display: none;">
+                <button class="btn btn-success btn-block" onclick="checkoutCart()">
+                    <i class="fas fa-download" aria-hidden="true"></i>
+                    Pakua Zote
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer" role="region" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Scripts - Order matters: Data files must load BEFORE app.js -->
+    <script src="data/categories.js"></script>
+    <script src="data/content.js"></script>
+    <script src="data/software.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+    <!-- Firebase connection + the single account store (Firestore). Must load before app.js -->
+    <script src="lib/firebase.js"></script>
+    <script src="lib/store.js"></script>
+    <script src="app.js"></script>
+    
+
+    <!-- Noscript fallback -->
+    <noscript>
+        <p style="color: white; text-align: center; padding: 20px;">
+            Karibu! JavaScript lazima kuwashwa ili kutumia HD BONGO CLUB.
+        </p>
+    </noscript>
+</body>
+</html>
