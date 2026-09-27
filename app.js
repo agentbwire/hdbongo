@@ -1977,12 +1977,37 @@ async function handleLogin(event) {
 
 async function handleRegister(event) {
     event.preventDefault();
-    const name = document.getElementById('registerName')?.value.trim();
-    const email = document.getElementById('registerEmail')?.value.trim();
-    const password = document.getElementById('registerPassword')?.value;
-    if (!name || !email || !password) return showToast('Jaza sehemu zote', 'error');
-    if (!HD.fb.auth) return showToast('Weka Firebase config.js kwanza', 'error');
-    try {
+    const form = document.getElementById('registerForm');
+    const submitButton = form?.querySelector('button[type="submit"]');
+    if (submitButton?.disabled) return;
+    const originalButtonText = submitButton?.innerHTML;
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Inaunda akaunti...';
+    }
+  const name = document.getElementById('registerName')?.value.trim();
+  const email = document.getElementById('registerEmail')?.value.trim();
+  const password = document.getElementById('registerPassword')?.value;
+  if (!name || !email || !password) {
+    showToast('Jaza sehemu zote', 'error');
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.removeAttribute('aria-busy');
+      submitButton.innerHTML = originalButtonText || 'Jisajili Sasa';
+    }
+    return;
+  }
+  if (!HD.fb || !HD.fb.auth) {
+    showToast('Firebase haijaunganishwa. Hakikisha config.js imepakiwa.', 'error');
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.removeAttribute('aria-busy');
+      submitButton.innerHTML = originalButtonText || 'Jisajili Sasa';
+    }
+    return;
+  }
+  try {
         const credential = await HD.fb.auth.createUserWithEmailAndPassword(email, password);
   await credential.user.updateProfile({ displayName: name });
   // A verification-email failure must not undo a successful Firebase account.
@@ -1997,7 +2022,15 @@ async function handleRegister(event) {
         saveAccount({ name: name, email: email, freeDownloadsRemaining: 1, points: userPoints });
         updateAuthUI(); closeAuthModal(); navigateTo('profile');
         showToast('Akaunti imeundwa. Thibitisha email yako.', 'success');
-    } catch (error) { showToast(firebaseAuthError(error), 'error'); }
+    } catch (error) {
+        showToast(firebaseAuthError(error), 'error');
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.removeAttribute('aria-busy');
+            submitButton.innerHTML = originalButtonText || 'Jisajili Sasa';
+        }
+    }
 }
 
 function firebaseAuthError(error) {
