@@ -1975,6 +1975,13 @@ async function handleLogin(event) {
     } catch (error) { showToast(firebaseAuthError(error), 'error'); }
 }
 
+function withTimeout(promise, timeoutMs, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(label || 'Request timed out')), timeoutMs))
+    ]);
+}
+
 async function handleRegister(event) {
     event.preventDefault();
     const form = document.getElementById('registerForm');
@@ -2008,22 +2015,29 @@ async function handleRegister(event) {
     return;
   }
   try {
-        const credential = await HD.fb.auth.createUserWithEmailAndPassword(email, password);
-  await credential.user.updateProfile({ displayName: name });
-  // A verification-email failure must not undo a successful Firebase account.
-  // The account and Firestore profile are still created; the user can resend later.
-  try {
-  await credential.user.sendEmailVerification();
-  } catch (verificationError) {
-  console.warn('Verification email could not be sent:', verificationError && verificationError.code);
-  }
-  await HDStore.signInReady();     // the account document now exists
+        const credential = await withTimeout(
+            HD.fb.auth.createUserWithEmailAndPassword(email, password),
+            15000,
+            'Firebase haikujibu. Angalia mtandao na Firebase Authentication.'
+        );
+        await withTimeout(credential.user.updateProfile({ displayName: name }), 10000, 'Imeshindikana kuhifadhi jina.');
+        // Verification is helpful, but it must never leave the registration button spinning.
+        try {
+            await withTimeout(credential.user.sendEmailVerification(), 10000, 'Verification timeout');
+        } catch (verificationError) {
+            console.warn('Verification email could not be sent:', verificationError && verificationError.code);
+        }
+        // Firestore profile sync is allowed to finish in the background. Auth success is not blocked by it.
+        withTimeout(HDStore.signInReady(), 8000, 'Firestore sync timeout').catch(error => {
+            console.warn('Firestore account sync delayed:', error.message);
+        });
         userPoints = 50;                 // welcome credit
         saveAccount({ name: name, email: email, freeDownloadsRemaining: 1, points: userPoints });
         updateAuthUI(); closeAuthModal(); navigateTo('profile');
         showToast('Akaunti imeundwa. Thibitisha email yako.', 'success');
     } catch (error) {
-        showToast(firebaseAuthError(error), 'error');
+        console.error('Registration failed:', error);
+        showToast(error.code ? firebaseAuthError(error) : (error.message || 'Usajili umeshindikana. Jaribu tena.'), 'error');
     } finally {
         if (submitButton) {
             submitButton.disabled = false;
