@@ -1984,9 +1984,15 @@ async function handleRegister(event) {
     if (!HD.fb.auth) return showToast('Weka Firebase config.js kwanza', 'error');
     try {
         const credential = await HD.fb.auth.createUserWithEmailAndPassword(email, password);
-        await credential.user.updateProfile({ displayName: name });
-        await credential.user.sendEmailVerification();
-        await HDStore.signInReady();     // the account document now exists
+  await credential.user.updateProfile({ displayName: name });
+  // A verification-email failure must not undo a successful Firebase account.
+  // The account and Firestore profile are still created; the user can resend later.
+  try {
+  await credential.user.sendEmailVerification();
+  } catch (verificationError) {
+  console.warn('Verification email could not be sent:', verificationError && verificationError.code);
+  }
+  await HDStore.signInReady();     // the account document now exists
         userPoints = 50;                 // welcome credit
         saveAccount({ name: name, email: email, freeDownloadsRemaining: 1, points: userPoints });
         updateAuthUI(); closeAuthModal(); navigateTo('profile');
@@ -1995,7 +2001,7 @@ async function handleRegister(event) {
 }
 
 function firebaseAuthError(error) {
-    const messages = { 'auth/email-already-in-use': 'Email hii tayari imesajiliwa.', 'auth/invalid-credential': 'Email au neno la siri si sahihi.', 'auth/weak-password': 'Neno la siri liwe na angalau herufi 6.', 'auth/invalid-email': 'Email si sahihi.' };
+    const messages = { 'auth/email-already-in-use': 'Email hii tayari imesajiliwa.', 'auth/invalid-credential': 'Email au neno la siri si sahihi.', 'auth/weak-password': 'Neno la siri liwe na angalau herufi 6.', 'auth/invalid-email': 'Email si sahihi.', 'auth/operation-not-allowed': 'Usajili wa Email/Password haujawashwa kwenye Firebase Authentication.', 'auth/network-request-failed': 'Mtandao umekatika. Angalia connection ujaribu tena.', 'auth/too-many-requests': 'Majaribio yamezidi. Subiri kidogo ujaribu tena.' };
     return messages[error.code] || 'Imeshindikana. Jaribu tena.';
 }
 
